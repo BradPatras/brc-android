@@ -1,5 +1,6 @@
 package io.github.bradpatras.brc_android_demo
 
+import android.content.res.AssetFileDescriptor
 import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
 
