@@ -1,6 +1,7 @@
 package io.github.bradpatras.basicremoteconfigs
 
 import java.io.BufferedReader
+import java.io.IOException
 import java.net.URL
 import java.io.InputStream
 import javax.net.ssl.HttpsURLConnection
@@ -22,6 +23,8 @@ class HttpHelper(private val url: URL) {
             inputStream = conn.inputStream
 
             result = inputStream?.bufferedReader()?.use(BufferedReader::readText)
+        } catch (exception: IOException) {
+            print("Error when executing get request: " + exception.localizedMessage)
         } catch (err: Error) {
             print("Error when executing get request: " + err.localizedMessage)
         }
