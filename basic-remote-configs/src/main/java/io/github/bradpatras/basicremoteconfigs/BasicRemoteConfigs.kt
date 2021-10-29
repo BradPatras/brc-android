@@ -1,20 +1,15 @@
 package io.github.bradpatras.basicremoteconfigs
 
-import android.content.SharedPreferences
-import androidx.annotation.RawRes
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.withContext
+import org.json.JSONObject
+import java.io.BufferedOutputStream
+import java.net.HttpURLConnection
 import java.net.URL
 
-class BasicRemoteConfigs {
-    private val remoteUrl: URL
-    private val localConfig: Unit
+class BasicRemoteConfigs(private val remoteUrl: URL) {
 
-    constructor(remoteUrl: URL, localAssetConfigName: String) {
-        this.remoteUrl = remoteUrl
-        this.localConfig = Unit
-    }
-
-    constructor(remoteUrl: URL, @RawRes localRawConfigResId: Int) {
-        this.remoteUrl = remoteUrl
-        this.localConfig = Unit
+    suspend fun fetchConfigs(): String? = withContext(Dispatchers.IO) {
+        HttpHelper(remoteUrl).makeGetRequest()
     }
 }
