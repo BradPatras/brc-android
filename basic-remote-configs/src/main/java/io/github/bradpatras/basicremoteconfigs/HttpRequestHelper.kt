@@ -6,7 +6,7 @@ import java.io.IOException
 import java.net.URL
 import javax.net.ssl.HttpsURLConnection
 
-class HttpHelper(private val url: URL) {
+internal class HttpRequestHelper(private val url: URL) {
 
     @Suppress("BlockingMethodInNonBlockingContext")
     suspend fun makeGetRequest(): String? = withContext(Dispatchers.IO) {

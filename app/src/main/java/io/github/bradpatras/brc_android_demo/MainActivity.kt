@@ -19,9 +19,7 @@ class MainActivity : AppCompatActivity() {
 
             delay(3000)
 
-            val configs = withContext(Dispatchers.IO) {
-                brc.fetchConfigs()
-            }
+            val configs = brc.fetchConfigs()
 
             withContext(Dispatchers.Main) {
                 updateText(configs)
