@@ -6,8 +6,7 @@ import android.os.Bundle
 import android.widget.TextView
 import androidx.lifecycle.lifecycleScope
 import io.github.bradpatras.basicremoteconfigs.BasicRemoteConfigs
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.withContext
+import kotlinx.coroutines.*
 import java.net.URL
 
 class MainActivity : AppCompatActivity() {
@@ -17,7 +16,13 @@ class MainActivity : AppCompatActivity() {
         setContentView(R.layout.activity_main)
 
         lifecycleScope.launchWhenCreated {
-            val configs = brc.fetchConfigs()
+
+            delay(3000)
+
+            val configs = withContext(Dispatchers.IO) {
+                brc.fetchConfigs()
+            }
+
             withContext(Dispatchers.Main) {
                 updateText(configs)
             }
