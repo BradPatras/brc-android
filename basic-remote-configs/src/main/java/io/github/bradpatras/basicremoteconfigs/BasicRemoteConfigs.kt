@@ -1,6 +1,8 @@
 package io.github.bradpatras.basicremoteconfigs
 
 import kotlinx.coroutines.coroutineScope
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.StateFlow
 import org.json.JSONArray
 import org.json.JSONObject
 import java.net.URL
@@ -10,19 +12,27 @@ import kotlin.collections.HashMap
 
 // Version code representing an unknown or un-fetched version
 private const val VERSION_NONE = -1
+private const val VERSION_KEY = "version"
 
 class BasicRemoteConfigs(private val remoteUrl: URL) {
-    private var version: Int = VERSION_NONE
-    private var values: HashMap<String, Any> = HashMap()
+    private var _version: Int = VERSION_NONE
     private var expirationDate: Date? = null
+    private val _valuesFlow: MutableStateFlow<HashMap<String, Any>> = MutableStateFlow(HashMap())
+
+    val valuesFlow: StateFlow<HashMap<String, Any>> = _valuesFlow
+    val version: Int get() = _version
 
     suspend fun fetchConfigs() = coroutineScope {
         val configs = HttpRequestHelper(remoteUrl).makeGetRequest() ?: ""
-        val json = JSONObject(configs)
-        val newValues = HashMap<String, Any>()
-        json.keys().forEach { newValues[it] = json.get(it) }
-        values = newValues
+        val jsonObject = JSONObject(configs)
+        val newVersion = jsonObject[VERSION_KEY] as? Int ?: VERSION_NONE
+        val newValues = jsonObject.toMap()
         expirationDate = getNewExpirationDate()
+
+        // Do not emit a new value if the version hasn't changed
+        if (newVersion != _version) {
+            _valuesFlow.emit(newValues)
+        }
     }
 
     private fun getNewExpirationDate(): Date {
@@ -33,11 +43,18 @@ class BasicRemoteConfigs(private val remoteUrl: URL) {
     }
 
     private suspend fun getCurrentValues() = coroutineScope {
-        if (expirationDate?.after(Date()) != true || values.isEmpty()) {
+        val expired = expirationDate?.after(Date()) != true || valuesFlow.value.isEmpty()
+        val versionNone = version == VERSION_NONE
+
+        if (expired or versionNone) {
             fetchConfigs()
         }
 
-        return@coroutineScope values
+        return@coroutineScope valuesFlow.value
+    }
+
+    suspend fun getKeys(): Set<String> {
+        return getCurrentValues().keys
     }
 
     suspend fun getBoolean(key: String): Boolean? {
@@ -80,5 +97,13 @@ class BasicRemoteConfigs(private val remoteUrl: URL) {
         }
 
         return values.toTypedArray()
+    }
+}
+
+private fun JSONObject.toMap(): HashMap<String, Any> {
+    return HashMap<String, Any>().also { map ->
+        keys().forEach { key ->
+            map[key] = this.get(key)
+        }
     }
 }
