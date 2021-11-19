@@ -20,11 +20,9 @@ class MainActivity : AppCompatActivity() {
             delay(3000)
 
             brc.fetchConfigs()
-            brc.getk
-            val configs = brc.fetchConfigs()
 
             withContext(Dispatchers.Main) {
-                updateText(configs)
+                updateText(brc.values.toString())
             }
         }
     }

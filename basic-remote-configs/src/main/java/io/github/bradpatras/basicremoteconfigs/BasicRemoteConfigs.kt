@@ -1,5 +1,6 @@
 package io.github.bradpatras.basicremoteconfigs
 
+import android.content.SharedPreferences
 import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -12,65 +13,107 @@ import kotlin.collections.HashMap
 
 // Version code representing an unknown or un-fetched version
 private const val VERSION_NONE = -1
+
+// Json key for the config version
 private const val VERSION_KEY = "version"
 
+/**
+ * Basic remote configs
+ *
+ * @property remoteUrl
+ * @constructor Create empty Basic remote configs
+ */
 class BasicRemoteConfigs(private val remoteUrl: URL) {
     private var _version: Int = VERSION_NONE
-    private var expirationDate: Date? = null
     private val _valuesFlow: MutableStateFlow<HashMap<String, Any>> = MutableStateFlow(HashMap())
 
+    /**
+     * Hash map containing the config values
+     */
+    val values: HashMap<String, Any> get() = valuesFlow.value
+
+    /**
+     * Flow version of the config values. Will emit new values after successfully
+     */
     val valuesFlow: StateFlow<HashMap<String, Any>> = _valuesFlow
+
+    /**
+     * Version parsed from the fetched configs.  If configs haven't been fetched or
+     * there was no version key included, the version will default to *-1*
+     */
     val version: Int get() = _version
 
+    /**
+     * A Date representing the last time the configs were successfully fetched and updated.
+     */
+    var fetchDate: Date? = null
+
+    /**
+     * Fetch configs from **url** provided in class constructor.
+     * If configs are fetched successfully and contain a **version** value
+     * different from what is currently stored, a new value will be emitted
+     * from the **valuesFlow** property.
+     */
     suspend fun fetchConfigs() = coroutineScope {
         val configs = HttpRequestHelper(remoteUrl).makeGetRequest() ?: ""
         val jsonObject = JSONObject(configs)
         val newVersion = jsonObject[VERSION_KEY] as? Int ?: VERSION_NONE
         val newValues = jsonObject.toMap()
-        expirationDate = getNewExpirationDate()
 
         // Do not emit a new value if the version hasn't changed
         if (newVersion != _version) {
+            fetchDate = Date()
             _valuesFlow.emit(newValues)
         }
     }
 
-    private fun getNewExpirationDate(): Date {
-        val calendar = Calendar.getInstance()
-        calendar.time = Date()
-        calendar.add(Calendar.DATE, 1)
-        return calendar.time
+    /**
+     * Get keys of all current configs
+     *
+     * @return Set containing config keys
+     */
+    fun getKeys(): Set<String> {
+        return valuesFlow.value.keys
     }
 
-    private suspend fun getCurrentValues() = coroutineScope {
-        val expired = expirationDate?.after(Date()) != true || valuesFlow.value.isEmpty()
-        val versionNone = version == VERSION_NONE
-
-        if (expired or versionNone) {
-            fetchConfigs()
-        }
-
-        return@coroutineScope valuesFlow.value
+    /**
+     * Get boolean
+     *
+     * @param key
+     * @return Boolean value associated with key, null if key or value doesn't exist.
+     */
+    fun getBoolean(key: String): Boolean? {
+        return valuesFlow.value[key] as? Boolean?
     }
 
-    suspend fun getKeys(): Set<String> {
-        return getCurrentValues().keys
+    /**
+     * Get int
+     *
+     * @param key
+     * @return Int value associated with key, null if key or value doesn't exist.
+     */
+    fun getInt(key: String): Int? {
+        return valuesFlow.value[key] as? Int
     }
 
-    suspend fun getBoolean(key: String): Boolean? {
-        return getCurrentValues()[key] as? Boolean?
+    /**
+     * Get string
+     *
+     * @param key
+     * @return String value associated with key, null if key or value doesn't exist.
+     */
+    fun getString(key: String): String? {
+        return valuesFlow.value[key] as? String
     }
 
-    suspend fun getInt(key: String): Int? {
-        return getCurrentValues()[key] as? Int
-    }
-
-    suspend fun getString(key: String): String? {
-        return getCurrentValues()[key] as? String
-    }
-
-    suspend fun getBooleanArray(key: String): Array<Boolean>? {
-        val jsonArray = getCurrentValues()[key] as? JSONArray ?: return null
+    /**
+     * Get boolean array
+     *
+     * @param key
+     * @return Boolean array associated with key, null if key or value doesn't exist.
+     */
+    fun getBooleanArray(key: String): Array<Boolean>? {
+        val jsonArray = valuesFlow.value[key] as? JSONArray ?: return null
         val values = mutableListOf<Boolean>()
         for (i in 0 until jsonArray.length()) {
             (jsonArray[i] as? Boolean)?.let { values.add(it) }
@@ -79,8 +122,14 @@ class BasicRemoteConfigs(private val remoteUrl: URL) {
         return values.toTypedArray()
     }
 
-    suspend fun getIntArray(key: String): Array<Int>? {
-        val jsonArray = getCurrentValues()[key] as? JSONArray ?: return null
+    /**
+     * Get int array
+     *
+     * @param key
+     * @return Int array associated with key, null if key or value doesn't exist.
+     */
+    fun getIntArray(key: String): Array<Int>? {
+        val jsonArray = valuesFlow.value[key] as? JSONArray ?: return null
         val values = mutableListOf<Int>()
         for (i in 0 until jsonArray.length()) {
             (jsonArray[i] as? Int)?.let { values.add(it) }
@@ -89,8 +138,14 @@ class BasicRemoteConfigs(private val remoteUrl: URL) {
         return values.toTypedArray()
     }
 
+    /**
+     * Get string array
+     *
+     * @param key
+     * @return String array associated with key, null if key or value doesn't exist.
+     */
     suspend fun getStringArray(key: String): Array<String>? {
-        val jsonArray = getCurrentValues()[key] as? JSONArray ?: return null
+        val jsonArray = valuesFlow.value[key] as? JSONArray ?: return null
         val values = mutableListOf<String>()
         for (i in 0 until jsonArray.length()) {
             (jsonArray[i] as? String)?.let { values.add(it) }
