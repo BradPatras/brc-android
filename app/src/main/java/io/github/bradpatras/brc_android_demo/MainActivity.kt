@@ -11,6 +11,7 @@ import java.net.URL
 
 class MainActivity : AppCompatActivity() {
     private val brc: BasicRemoteConfigs = BasicRemoteConfigs(URL("https://github.com/BradPatras/basic-remote-configs/raw/main/examples/simple.json"))
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)

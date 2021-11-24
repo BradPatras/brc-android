@@ -1,11 +1,14 @@
 package io.github.bradpatras.basicremoteconfigs
 
 import android.content.SharedPreferences
+import android.util.Log
 import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import org.json.JSONArray
+import org.json.JSONException
 import org.json.JSONObject
+import java.lang.Exception
 import java.net.URL
 import java.time.LocalDateTime
 import java.util.*
@@ -15,7 +18,7 @@ import kotlin.collections.HashMap
 private const val VERSION_NONE = -1
 
 // Json key for the config version
-private const val VERSION_KEY = "version"
+private const val VERSION_KEY = "ver"
 
 /**
  * Basic remote configs
@@ -54,16 +57,20 @@ class BasicRemoteConfigs(private val remoteUrl: URL) {
      * different from what is currently stored, a new value will be emitted
      * from the **valuesFlow** property.
      */
-    suspend fun fetchConfigs() = coroutineScope {
+    suspend fun fetchConfigs(): Unit = coroutineScope {
         val configs = HttpRequestHelper(remoteUrl).makeGetRequest() ?: ""
-        val jsonObject = JSONObject(configs)
-        val newVersion = jsonObject[VERSION_KEY] as? Int ?: VERSION_NONE
-        val newValues = jsonObject.toMap()
+        try {
+            val jsonObject = JSONObject(configs)
+            val newVersion = jsonObject[VERSION_KEY] as? Int ?: VERSION_NONE
+            val newValues = jsonObject.toMap()
 
-        // Do not emit a new value if the version hasn't changed
-        if (newVersion != _version) {
-            fetchDate = Date()
-            _valuesFlow.emit(newValues)
+            // Do not emit a new value if the version hasn't changed
+            if (newVersion != _version) {
+                fetchDate = Date()
+                _valuesFlow.emit(newValues)
+            }
+        } catch (e: Throwable) {
+            Log.e("BasicRemoteConfigs", "Failed to parse config json.", e)
         }
     }
 
