@@ -7,7 +7,7 @@ The usage is pretty straightforward:
 2. Call `.fetchConfigs()`. (This is a `suspend` function so you'll need to call it in a coroutine scope)
 3. Access your configs.
 ```kotlin
-val CONFIG_URL = URL("https://github.com/BradPatras/basic-remote-configs/raw/main/examples/simple.json")
+val configUrl = URL("https://github.com/BradPatras/basic-remote-configs/raw/main/examples/simple.json")
 
 // #1
 val brc = BasicRemoteConfigs(configUrl)
