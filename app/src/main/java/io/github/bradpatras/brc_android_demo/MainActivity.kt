@@ -7,23 +7,32 @@ import android.widget.TextView
 import androidx.lifecycle.lifecycleScope
 import io.github.bradpatras.basicremoteconfigs.BasicRemoteConfigs
 import kotlinx.coroutines.*
+import java.lang.Exception
 import java.net.URL
 
+private const val CONFIG_URL = "https://github.com/BradPatras/basic-remote-configs/raw/main/examples/simple.json"
+
 class MainActivity : AppCompatActivity() {
-    private val brc: BasicRemoteConfigs = BasicRemoteConfigs(URL("https://github.com/BradPatras/basic-remote-configs/raw/main/examples/simple.json"))
+
+    private val brc: BasicRemoteConfigs = BasicRemoteConfigs(URL(CONFIG_URL))
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
 
         lifecycleScope.launchWhenCreated {
-
-            delay(3000)
-
-            brc.fetchConfigs()
-
-            withContext(Dispatchers.Main) {
-                updateText(brc.values.toString())
+            delay(1000)
+            
+            try {
+                brc.fetchConfigs()
+                withContext(Dispatchers.Main) {
+                    updateText(brc.values.map { "${it.key}: ${it.value}" }
+                        .joinToString(separator = ",\n"))
+                }
+            } catch (error: Throwable) {
+                withContext(Dispatchers.Main) {
+                    updateText("Encountered an error when fetching configs")
+                }
             }
         }
     }

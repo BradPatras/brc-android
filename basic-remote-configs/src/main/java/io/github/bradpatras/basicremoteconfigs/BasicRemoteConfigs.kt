@@ -1,16 +1,12 @@
 package io.github.bradpatras.basicremoteconfigs
 
-import android.content.SharedPreferences
 import android.util.Log
 import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import org.json.JSONArray
-import org.json.JSONException
 import org.json.JSONObject
-import java.lang.Exception
 import java.net.URL
-import java.time.LocalDateTime
 import java.util.*
 import kotlin.collections.HashMap
 
@@ -56,6 +52,8 @@ class BasicRemoteConfigs(private val remoteUrl: URL) {
      * If configs are fetched successfully and contain a **version** value
      * different from what is currently stored, a new value will be emitted
      * from the **valuesFlow** property.
+     *
+     * **Note:** This function may throw IOException, JSONException and possibly others.
      */
     suspend fun fetchConfigs(): Unit = coroutineScope {
         val configs = HttpRequestHelper(remoteUrl).makeGetRequest() ?: ""
@@ -71,6 +69,7 @@ class BasicRemoteConfigs(private val remoteUrl: URL) {
             }
         } catch (e: Throwable) {
             Log.e("BasicRemoteConfigs", "Failed to parse config json.", e)
+            throw e
         }
     }
 
