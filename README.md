@@ -1,6 +1,8 @@
 # brc-android
 Bare-bones remote configs for Android.  Check out the [basic-remote-configs](https://github.com/BradPatras/basic-remote-configs) repo for more context.
 
+🚧 &nbsp; Under active development &nbsp; 🚧
+
 ## Usage
 The usage is pretty straightforward:
 1. Create an instance of BasicRemoteConfigs
