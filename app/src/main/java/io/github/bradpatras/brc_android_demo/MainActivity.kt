@@ -1,13 +1,11 @@
 package io.github.bradpatras.brc_android_demo
 
-import android.content.res.AssetFileDescriptor
 import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
 import android.widget.TextView
 import androidx.lifecycle.lifecycleScope
 import io.github.bradpatras.basicremoteconfigs.BasicRemoteConfigs
 import kotlinx.coroutines.*
-import java.lang.Exception
 import java.net.URL
 
 private const val CONFIG_URL = "https://github.com/BradPatras/basic-remote-configs/raw/main/examples/simple.json"

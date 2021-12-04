@@ -1,6 +1,9 @@
 package io.github.bradpatras.basicremoteconfigs
 
 import android.util.Log
+import io.github.bradpatras.basicremoteconfigs.cache.CacheHelper
+import io.github.bradpatras.basicremoteconfigs.network.HttpRequestHelper
+import io.github.bradpatras.basicremoteconfigs.util.DateHelper
 import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -16,6 +19,12 @@ private const val VERSION_NONE = -1
 // Json key for the config version
 private const val VERSION_KEY = "ver"
 
+// cache filename
+private const val CONFIG_CACHE_FILENAME = "brc_cache"
+
+// Amount of days the cached configs remain valid
+private const val CACHE_EXPIRATION_DAYS = 1
+
 /**
  * Basic remote configs
  *
@@ -25,6 +34,7 @@ private const val VERSION_KEY = "ver"
 class BasicRemoteConfigs(private val remoteUrl: URL) {
     private var _version: Int = VERSION_NONE
     private val _valuesFlow: MutableStateFlow<HashMap<String, Any>> = MutableStateFlow(HashMap())
+    private val cacheHelper = CacheHelper(CONFIG_CACHE_FILENAME)
 
     /**
      * Hash map containing the config values
@@ -55,16 +65,52 @@ class BasicRemoteConfigs(private val remoteUrl: URL) {
      *
      * **Note:** This function may throw IOException, JSONException and possibly others.
      */
-    suspend fun fetchConfigs(): Unit = coroutineScope {
-        val configs = HttpRequestHelper(remoteUrl).makeGetRequest() ?: ""
+    suspend fun fetchConfigs(ignoreCache: Boolean = false): Unit = coroutineScope {
+        val cacheConfigs = cacheHelper.getCacheConfigs()
+        val cacheModifiedDate = cacheHelper.getLastModified() ?: DateHelper.now()
+        val cacheExists = cacheConfigs != null
+        val cacheIsNotExpired = DateHelper.daysSince(cacheModifiedDate) < CACHE_EXPIRATION_DAYS
+
+        if (!ignoreCache and cacheExists and cacheIsNotExpired) {
+            Log.i("BasicRemoteConfigs", "Fetching local configs")
+            fetchLocalConfigs()
+        } else {
+            try {
+                Log.i("BasicRemoteConfigs", "Fetching remote configs")
+                fetchRemoteConfigs()
+            } catch (e: Throwable) {
+                Log.w("BasicRemoteConfigs", "Failed to fetch remote configs. Attempting local cache fallback", e)
+                fetchLocalConfigs()
+            }
+        }
+    }
+
+    private suspend fun fetchRemoteConfigs(): Unit = coroutineScope {
         try {
-            val jsonObject = JSONObject(configs)
-            val newVersion = jsonObject[VERSION_KEY] as? Int ?: VERSION_NONE
-            val newValues = jsonObject.toMap()
+            val configs = requireNotNull(HttpRequestHelper.makeGetRequest(remoteUrl))
+            val newVersion = configs[VERSION_KEY] as? Int ?: VERSION_NONE
+            val newValues = configs.toMap()
 
             // Do not emit a new value if the version hasn't changed
-            if (newVersion != _version) {
+            if ((newVersion != _version) or (newVersion == VERSION_NONE)) {
                 fetchDate = Date()
+                cacheHelper.setCacheConfigs(configs)
+                _valuesFlow.emit(newValues)
+            }
+        } catch (e: Throwable) {
+            Log.e("BasicRemoteConfigs", "Failed to parse config json.", e)
+            throw e
+        }
+    }
+
+    private suspend fun fetchLocalConfigs(): Unit = coroutineScope {
+        try {
+            val configs = requireNotNull(cacheHelper.getCacheConfigs())
+            val newVersion = configs[VERSION_KEY] as? Int ?: VERSION_NONE
+            val newValues = configs.toMap()
+
+            // Do not emit a new value if the version hasn't changed
+            if ((newVersion != _version) or (newVersion == VERSION_NONE)) {
                 _valuesFlow.emit(newValues)
             }
         } catch (e: Throwable) {
