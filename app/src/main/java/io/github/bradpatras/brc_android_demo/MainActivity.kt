@@ -22,7 +22,7 @@ class MainActivity : AppCompatActivity() {
 
         lifecycleScope.launchWhenCreated {
             delay(1000)
-            
+
             try {
                 brc.fetchConfigs()
                 withContext(Dispatchers.Main) {
