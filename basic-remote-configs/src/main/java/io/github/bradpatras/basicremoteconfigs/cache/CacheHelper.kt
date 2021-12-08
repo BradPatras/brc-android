@@ -2,12 +2,10 @@ package io.github.bradpatras.basicremoteconfigs.cache
 
 import android.util.Log
 import io.github.bradpatras.basicremoteconfigs.internal.BrcInitializer
-import io.github.bradpatras.basicremoteconfigs.util.DateHelper
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import org.json.JSONObject
 import java.io.*
-import java.time.LocalDateTime
 import java.util.*
 
 internal class CacheHelper(private val cacheFilename: String) {
@@ -49,9 +47,9 @@ internal class CacheHelper(private val cacheFilename: String) {
             }
         }
 
-        fun getLastModified(): LocalDateTime? {
+        fun getLastModified(): Long? {
             return if (getCacheFile().exists()) {
-                DateHelper.dateTimeFromEpochMillis(getCacheFile().lastModified())
+                getCacheFile().lastModified()
             } else {
                 null
             }
