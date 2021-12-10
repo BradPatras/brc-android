@@ -5,8 +5,6 @@ import io.github.bradpatras.basicremoteconfigs.cache.CacheHelper
 import io.github.bradpatras.basicremoteconfigs.network.HttpRequestHelper
 import io.github.bradpatras.basicremoteconfigs.util.DateHelper
 import kotlinx.coroutines.coroutineScope
-import kotlinx.coroutines.flow.MutableStateFlow
-import kotlinx.coroutines.flow.StateFlow
 import org.json.JSONArray
 import org.json.JSONObject
 import java.net.URL
@@ -33,18 +31,13 @@ private const val CACHE_EXPIRATION_DAYS = 1
  */
 class BasicRemoteConfigs(private val remoteUrl: URL) {
     private var _version: Int = VERSION_NONE
-    private val _valuesFlow: MutableStateFlow<HashMap<String, Any>> = MutableStateFlow(HashMap())
+    private var _values: HashMap<String, Any> = HashMap()
     private val cacheHelper = CacheHelper(CONFIG_CACHE_FILENAME)
 
     /**
      * Hash map containing the config values
      */
-    val values: HashMap<String, Any> get() = valuesFlow.value
-
-    /**
-     * Flow version of the config values. Will emit new values after successfully
-     */
-    val valuesFlow: StateFlow<HashMap<String, Any>> = _valuesFlow
+    val values: HashMap<String, Any> get() = _values
 
     /**
      * Version parsed from the fetched configs.  If configs haven't been fetched or
@@ -95,7 +88,7 @@ class BasicRemoteConfigs(private val remoteUrl: URL) {
             if ((newVersion != _version) or (newVersion == VERSION_NONE)) {
                 fetchDate = Date()
                 cacheHelper.setCacheConfigs(configs)
-                _valuesFlow.emit(newValues)
+                _values = newValues
             }
         } catch (e: Throwable) {
             Log.e("BasicRemoteConfigs", "Failed to parse config json.", e)
@@ -111,7 +104,7 @@ class BasicRemoteConfigs(private val remoteUrl: URL) {
 
             // Do not emit a new value if the version hasn't changed
             if ((newVersion != _version) or (newVersion == VERSION_NONE)) {
-                _valuesFlow.emit(newValues)
+                _values = newValues
             }
         } catch (e: Throwable) {
             Log.e("BasicRemoteConfigs", "Failed to parse config json.", e)
@@ -125,7 +118,7 @@ class BasicRemoteConfigs(private val remoteUrl: URL) {
      * @return Set containing config keys
      */
     fun getKeys(): Set<String> {
-        return valuesFlow.value.keys
+        return values.keys
     }
 
     /**
@@ -135,7 +128,7 @@ class BasicRemoteConfigs(private val remoteUrl: URL) {
      * @return Boolean value associated with key, null if key or value doesn't exist.
      */
     fun getBoolean(key: String): Boolean? {
-        return valuesFlow.value[key] as? Boolean?
+        return values[key] as? Boolean?
     }
 
     /**
@@ -145,7 +138,7 @@ class BasicRemoteConfigs(private val remoteUrl: URL) {
      * @return Int value associated with key, null if key or value doesn't exist.
      */
     fun getInt(key: String): Int? {
-        return valuesFlow.value[key] as? Int
+        return values[key] as? Int
     }
 
     /**
@@ -155,7 +148,7 @@ class BasicRemoteConfigs(private val remoteUrl: URL) {
      * @return String value associated with key, null if key or value doesn't exist.
      */
     fun getString(key: String): String? {
-        return valuesFlow.value[key] as? String
+        return values[key] as? String
     }
 
     /**
@@ -165,7 +158,7 @@ class BasicRemoteConfigs(private val remoteUrl: URL) {
      * @return Boolean array associated with key, null if key or value doesn't exist.
      */
     fun getBooleanArray(key: String): Array<Boolean>? {
-        val jsonArray = valuesFlow.value[key] as? JSONArray ?: return null
+        val jsonArray = values[key] as? JSONArray ?: return null
         val values = mutableListOf<Boolean>()
         for (i in 0 until jsonArray.length()) {
             (jsonArray[i] as? Boolean)?.let { values.add(it) }
@@ -181,7 +174,7 @@ class BasicRemoteConfigs(private val remoteUrl: URL) {
      * @return Int array associated with key, null if key or value doesn't exist.
      */
     fun getIntArray(key: String): Array<Int>? {
-        val jsonArray = valuesFlow.value[key] as? JSONArray ?: return null
+        val jsonArray = values[key] as? JSONArray ?: return null
         val values = mutableListOf<Int>()
         for (i in 0 until jsonArray.length()) {
             (jsonArray[i] as? Int)?.let { values.add(it) }
@@ -197,7 +190,7 @@ class BasicRemoteConfigs(private val remoteUrl: URL) {
      * @return String array associated with key, null if key or value doesn't exist.
      */
     suspend fun getStringArray(key: String): Array<String>? {
-        val jsonArray = valuesFlow.value[key] as? JSONArray ?: return null
+        val jsonArray = values[key] as? JSONArray ?: return null
         val values = mutableListOf<String>()
         for (i in 0 until jsonArray.length()) {
             (jsonArray[i] as? String)?.let { values.add(it) }
