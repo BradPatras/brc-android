@@ -7,7 +7,7 @@ Bare-bones remote configs for Android.  Check out the [basic-remote-configs](htt
 
 
 ### Gradle:
-In your root build.gradle file, add the `mavenCentral()` repo:
+In your root `build.gradle` file, add the `mavenCentral()` repo:
 ```gradle
 allProjects {
     repositories {
@@ -16,7 +16,7 @@ allProjects {
 }
 ```
 
-In your app or module build.gradle file, add the `brc-android` dependency:
+In your app or module `build.gradle` file, add the `brc-android` dependency:
 ```gradle
 dependencies {
     implementation 'io.github.bradpatras:brc-android:0.1.0'
