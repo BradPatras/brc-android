@@ -3,6 +3,24 @@ Bare-bones remote configs for Android.  Check out the [basic-remote-configs](htt
 
 🚧 &nbsp; Under active development &nbsp; 🚧
 
+
+### Gradle:
+In your root build.gradle file, add the `mavenCentral()` repo:
+```gradle
+allProjects {
+    repositories {
+        mavenCentral()
+    }
+}
+```
+
+In your app or module build.gradle file, add the `brc-android` dependency:
+```gradle
+dependencies {
+    implementation 'io.github.bradpatras:brc-android:0.1.0'
+}
+```
+
 ## Usage
 The usage is pretty straightforward:
 1. Create an instance of BasicRemoteConfigs
