@@ -1,3 +1,5 @@
+[![Maven Central](https://maven-badges.herokuapp.com/maven-central/io.github.bradpatras/brc-android/badge.svg)](https://maven-badges.herokuapp.com/maven-central/io.github.bradpatras/brc-android)
+
 # brc-android
 Bare-bones remote configs for Android.  Check out the [basic-remote-configs](https://github.com/BradPatras/basic-remote-configs) repo for more context.
 
