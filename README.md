@@ -36,9 +36,9 @@ val brc = BasicRemoteConfigs(configUrl)
 
 // ...
 
-lifecycleScope { 
-  brc.fetchConfigs() // #2
-  val someFlag = brc.getBoolean("someFlag") // #3
+lifecycleScope.launch { 
+    brc.fetchConfigs() // #2
+    val someFlag = brc.getBoolean("someFlag") // #3
 }
 ```
 
@@ -54,9 +54,9 @@ If you'd like to bypass the cached version and fetch the latest configs from the
 The call to `.fetchConfigs()` map make a network request and do some deserialization, so it's bound to fail at some point. BasicRemoteConfigs will log errors under the key "BasicRemoteConfigs" using `Log.e` with a hint as to where the error happened in regards to fetching configs. It won't do any handling or masking of the exceptions so you need to wrap it in a try/catch or use a CoroutineExceptionHandler yourself.
 ```kotlin
 try {
-  brc.fetchConfigs()
+    brc.fetchConfigs()
 } catch (exception: Exception) {
-  // What happens here is up to you
+    // What happens here is up to you
 }
 ```
 
