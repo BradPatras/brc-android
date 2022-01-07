@@ -61,5 +61,5 @@ try {
 ```
 
 ## Important:
-- BasicRemoteConfigs is not a global/static resource out of the box. It makes no assumptions about scope or lifecycle, so you are in charge of keeping an instance of the class alive/stored somewhere.
-- BasicRemoteConfigs utilizes the [App Startup](https://developer.android.com/topic/libraries/app-startup) Jetpack library in order to access Context (so it can grab the app's file directory path).  Some people may have an issue with this approach, but it seems pretty harmless to me and it looks to be working for the [Realm Kotlin](https://github.com/realm/realm-kotlin) project. 🤷🏻‍♂️ 
+- BasicRemoteConfigs is not a global/static resource out of the box. It makes no assumptions about scope or lifecycle.
+- BasicRemoteConfigs utilizes the [App Startup](https://developer.android.com/topic/libraries/app-startup) Jetpack library in order to access Context (so it can grab the app's file directory path for caching).  Some people may have an issue with this approach, but it seems pretty harmless to me and it looks to be working for the [Realm Kotlin](https://github.com/realm/realm-kotlin) project. 🤷🏻‍♂️ 
