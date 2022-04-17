@@ -19,7 +19,7 @@ allProjects {
 In your app or module `build.gradle` file, add the `brc-android` dependency:
 ```gradle
 dependencies {
-    implementation 'io.github.bradpatras:brc-android:0.1.0'
+    implementation 'io.github.bradpatras:brc-android:0.2.0'
 }
 ```
 
