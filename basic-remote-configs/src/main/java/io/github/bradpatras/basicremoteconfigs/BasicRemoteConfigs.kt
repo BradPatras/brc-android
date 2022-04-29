@@ -89,6 +89,7 @@ class BasicRemoteConfigs(private val remoteUrl: URL) {
                 fetchDate = Date()
                 cacheHelper.setCacheConfigs(configs)
                 _values = newValues
+                _version = newVersion
             }
         } catch (e: Throwable) {
             Log.e("BasicRemoteConfigs", "Failed to parse config json.", e)
