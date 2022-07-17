@@ -26,7 +26,8 @@ private const val CACHE_EXPIRATION_HOURS = 24
 /**
  * Basic remote configs
  *
- * @property remoteUrl
+ * @property remoteUrl URL pointing to the remote server providing the configs
+ * @property customHeaders Additional headers that will be sent with the fetch request
  * @constructor Create empty Basic remote configs
  */
 class BasicRemoteConfigs(
