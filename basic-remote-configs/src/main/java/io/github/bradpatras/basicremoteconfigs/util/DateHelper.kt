@@ -8,8 +8,8 @@ class DateHelper {
             return System.currentTimeMillis()
         }
 
-        fun daysSince(timeMilliseconds: Long): Long {
-            return TimeUnit.MILLISECONDS.toDays(now() - timeMilliseconds)
+        fun hoursSince(timeMilliseconds: Long): Long {
+            return TimeUnit.MILLISECONDS.toHours(now() - timeMilliseconds)
         }
     }
 }

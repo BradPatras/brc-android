@@ -10,9 +10,14 @@ import javax.net.ssl.HttpsURLConnection
 internal class HttpRequestHelper {
     companion object {
         @Suppress("BlockingMethodInNonBlockingContext")
-        suspend fun makeGetRequest(url: URL): JSONObject? = withContext(Dispatchers.IO) {
+        suspend fun makeGetRequest(
+            url: URL,
+            customHeaders: HashMap<String, String>
+        ): JSONObject? = withContext(Dispatchers.IO) {
             try {
                 val connection = url.openConnection() as? HttpsURLConnection
+                customHeaders.map { connection?.setRequestProperty(it.key, it.value) }
+                connection?.requestMethod = "GET"
                 connection?.connect()
                 val responseString = connection?.inputStream?.bufferedReader()?.use(BufferedReader::readText)
 

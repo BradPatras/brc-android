@@ -27,6 +27,11 @@ class MainActivity : AppCompatActivity() {
                 getConfigs()
             }
         }
+
+        binding.clearBtn.setOnClickListener {
+            updateUI(null, false)
+            brc.clearCache()
+        }
     }
 
     private suspend fun getConfigs() = coroutineScope {

@@ -17,11 +17,11 @@ private const val VERSION_NONE = -1
 // Json key for the config version
 private const val VERSION_KEY = "ver"
 
-// cache filename
+// Cache filename
 private const val CONFIG_CACHE_FILENAME = "brc_cache"
 
 // Amount of days the cached configs remain valid
-private const val CACHE_EXPIRATION_DAYS = 1
+private const val CACHE_EXPIRATION_HOURS = 24
 
 /**
  * Basic remote configs
@@ -29,7 +29,10 @@ private const val CACHE_EXPIRATION_DAYS = 1
  * @property remoteUrl
  * @constructor Create empty Basic remote configs
  */
-class BasicRemoteConfigs(private val remoteUrl: URL) {
+class BasicRemoteConfigs(
+    private val remoteUrl: URL,
+    private val customHeaders: HashMap<String, String> = HashMap()
+) {
     private var _version: Int = VERSION_NONE
     private var _values: HashMap<String, Any> = HashMap()
     private val cacheHelper = CacheHelper(CONFIG_CACHE_FILENAME)
@@ -62,7 +65,7 @@ class BasicRemoteConfigs(private val remoteUrl: URL) {
         val cacheConfigs = cacheHelper.getCacheConfigs()
         val cacheModifiedDate = cacheHelper.getLastModified() ?: DateHelper.now()
         val cacheExists = cacheConfigs != null
-        val cacheIsNotExpired = DateHelper.daysSince(cacheModifiedDate) < CACHE_EXPIRATION_DAYS
+        val cacheIsNotExpired = DateHelper.hoursSince(cacheModifiedDate) < CACHE_EXPIRATION_HOURS
 
         if (!ignoreCache and cacheExists and cacheIsNotExpired) {
             Log.i("BasicRemoteConfigs", "Fetching local configs")
@@ -78,9 +81,16 @@ class BasicRemoteConfigs(private val remoteUrl: URL) {
         }
     }
 
+    fun clearCache() {
+        cacheHelper.deleteCacheFile()
+        _values = HashMap()
+        _version = VERSION_NONE
+        fetchDate = null
+    }
+
     private suspend fun fetchRemoteConfigs(): Unit = coroutineScope {
         try {
-            val configs = requireNotNull(HttpRequestHelper.makeGetRequest(remoteUrl))
+            val configs = requireNotNull(HttpRequestHelper.makeGetRequest(remoteUrl, customHeaders))
             val newVersion = configs[VERSION_KEY] as? Int ?: VERSION_NONE
             val newValues = configs.toMap()
 
